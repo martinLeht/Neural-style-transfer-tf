@@ -69,25 +69,25 @@ def deprocess_img(processed_img):
 
 
 def get_model(style_layers, content_layers):
-  """ Creates our model with access to intermediate layers. 
+    """ Creates our model with access to intermediate layers. 
   
-  This function will load the VGG19 model and access the intermediate layers. 
-  These layers will then be used to create a new model that will take input image
-  and return the outputs from these intermediate layers from the VGG model. 
+    This function will load the VGG19 model and access the intermediate layers. 
+    These layers will then be used to create a new model that will take input image
+    and return the outputs from these intermediate layers from the VGG model. 
   
-  Returns:
-    returns a keras model that takes image inputs and outputs the style and 
-      content intermediate layers. 
-  """
-  # Load our model. We load pretrained VGG, trained on imagenet data
-  vgg = tf.keras.applications.vgg19.VGG19(include_top=False, weights='imagenet')
-  vgg.trainable = False
-  #Get output layers corresponding to style and content layers
-  style_outputs = [vgg.get_layer(name).output for name in style_layers]
-  content_outputs = [vgg.get_layer(name).output for name in content_layers]
-  model_outputs = style_outputs + content_outputs
-  # Build model
-  return models.Model(vgg.input, model_outputs)
+    Returns:
+        returns a keras model that takes image inputs and outputs the style and 
+        content intermediate layers. 
+    """
+    # Load our model. We load pretrained VGG, trained on imagenet data
+    vgg = tf.keras.applications.vgg19.VGG19(include_top=False, weights='imagenet')
+    vgg.trainable = False
+    #Get output layers corresponding to style and content layers
+    style_outputs = [vgg.get_layer(name).output for name in style_layers]
+    content_outputs = [vgg.get_layer(name).output for name in content_layers]
+    model_outputs = style_outputs + content_outputs
+    # Build model
+    return models.Model(vgg.input, model_outputs)
 
 
 def get_content_loss(base_content, target):
@@ -131,6 +131,7 @@ def get_feature_representations(model, content_path, style_path, num_content_lay
     # Load our images in
     content_image = load_and_process_img(content_path)
     style_image = load_and_process_img(style_path)
+    
     
     # batch compute content and style features
     style_outputs = model(style_image)
@@ -221,7 +222,8 @@ def run_style_transfer(content_path,
                                                                    content_path,
                                                                    style_path,
                                                                    num_content_layers,
-                                                                   num_style_layers)
+                                                                  num_style_layers)
+    
     
     gram_style_features = [gram_matrix(style_feature) for style_feature in style_features]
     
@@ -248,7 +250,6 @@ def run_style_transfer(content_path,
         'num_content_layers': num_content_layers,
         'num_style_layers': num_style_layers
     }
-    
     # For displaying
     num_rows = 2
     num_cols = 5
@@ -306,10 +307,10 @@ def show_results(best_img, content_path, style_path, show_large_final=True):
     style = load_img(style_path)
     
     plt.subplot(1, 2, 1)
-    plt.imshow(content, 'Content Image')
+    show_image(content, 'Content Image')
     
     plt.subplot(1, 2, 2)
-    plt.imshow(style, 'Style Image')
+    show_image(style, 'Style Image')
     
     if show_large_final:
         plt.figure(figsize=(10, 10))
@@ -317,14 +318,23 @@ def show_results(best_img, content_path, style_path, show_large_final=True):
         plt.imshow(best_img)
         plt.title('Output Image')
         plt.show()
+        
+
+def save_result_image(img, img_name):
+    try:
+        img.save('./results/{}'.format(img_name))
+    except IOError:
+        pass
     
 
 def main():
+
+    
     print("Eager execution: {}".format(tf.executing_eagerly()))
     
     # Set path to content and style file
-    content_path = './data/mara.jpg'
-    style_path = './data/the_scream.jpg'
+    content_path = './data/gandalf2.jpg'
+    style_path = './data/wave.jpg'
     
     plt.figure(figsize=(10,10))
 
@@ -337,6 +347,7 @@ def main():
     plt.subplot(1, 2, 2)
     show_image(style, 'Style Image')
     plt.show()
+    
     
     # Content layer where will pull our feature maps
     content_layers = ['block5_conv2'] 
@@ -352,13 +363,16 @@ def main():
     num_content_layers = len(content_layers)
     num_style_layers = len(style_layers)
     
+    
     best, best_loss = run_style_transfer(content_path, style_path,
                                          content_layers, style_layers,
                                          num_content_layers, num_style_layers,
                                          num_iterations=1000)
-    Image.fromarray(best)
+    
+    best_img = Image.fromarray(best)
     
     show_results(best, content_path, style_path)
+    save_result_image(best_img, 'wave_gandalf2.jpg')
     
     
     
