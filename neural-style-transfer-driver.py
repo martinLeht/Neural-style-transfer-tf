@@ -323,18 +323,26 @@ def show_results(best_img, content_path, style_path, show_large_final=True):
 def save_result_image(img, img_name):
     try:
         img.save('./results/{}'.format(img_name))
+        print("Successfully saved the output image!")
     except IOError:
+        print("An error occured when saving...")
         pass
     
 
 def main():
 
-    
+    print("----- Neural Style Transfer -----\n")
     print("Eager execution: {}".format(tf.executing_eagerly()))
+    print("Provide the file path to a content image and style image below:")
     
-    # Set path to content and style file
-    content_path = './data/gandalf2.jpg'
-    style_path = './data/wave.jpg'
+    # Set path to content and style file through user input
+    #content_path = input("Content image path: ")
+    #style_path = input("Style image path: ")
+    
+    
+    # Set path to content and style file manually
+    content_path = './data/gandalf.jpg'
+    style_path = './data/starry_night.jpg'
     
     plt.figure(figsize=(10,10))
 
@@ -367,13 +375,23 @@ def main():
     best, best_loss = run_style_transfer(content_path, style_path,
                                          content_layers, style_layers,
                                          num_content_layers, num_style_layers,
-                                         num_iterations=1000)
+                                         num_iterations=100)
     
     best_img = Image.fromarray(best)
     
     show_results(best, content_path, style_path)
-    save_result_image(best_img, 'wave_gandalf2.jpg')
     
+    while True:
+        cmd = input("Would you like to save the output image (y/n): ")
+        if cmd == "y" or cmd == "Y":
+            output_image_name = input("File name for output file: ")
+            save_result_image(best_img, output_image_name + ".jpg")
+            break
+        elif cmd == "n" or cmd == "N":
+            break
+        else:
+            print("Invalid command!")
+    print("Thanks BYE!")
     
     
 if __name__ == "__main__":
